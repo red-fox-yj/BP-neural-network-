@@ -80,7 +80,7 @@ def backward_propagation(parameters, cache, X, Y):
 
 
 # 5.更新参数
-def update_parameters(parameters, grads, learning_rate=0.4):
+def update_parameters(parameters, grads, learning_rate=0.04):
     w1 = parameters["w1"]
     b1 = parameters["b1"]
     w2 = parameters["w2"]
@@ -129,28 +129,45 @@ def predict(parameters, x_test, y_test):
                 output[i][j] = 0
 
     print("预测结果：")
-    print(output)
+    print(output.T)
     print("真实结果：")
-    print(y_test)
+    print(y_test.T)
 
-    count = 0
-    for k in range(0, n_cols):
-        if (
-            output[0][k] == y_test[0][k]
-            and output[1][k] == y_test[1][k]
-            and output[2][k] == y_test[2][k]
-        ):
-            count = count + 1
-        else:
-            print(k)
+    # count = 0
+    # for k in range(0, n_cols):
+    #     if (
+    #         output[0][k] == y_test[0][k]
+    #         and output[1][k] == y_test[1][k]
+    #         and output[2][k] == y_test[2][k]
+    #     ):
+    #         count = count + 1
+    #     else:
+    #         print(k)
 
-    acc = count / int(y_test.shape[1]) * 100
-    print("准确率：%.2f%%" % acc)
+    # acc = count / int(y_test.shape[1]) * 100
+    # print("准确率：%.2f%%" % acc)
+    print("准确率：", accuracy_calculate(output.T, y_test.T))
     return output
 
 
+def accuracy_calculate(predict, real):
+    """计算结果准确率"""
+    # 结果的维度
+    n_rows = predict.shape[0]
+    n_cols = predict.shape[1]
+    accuracy = 0.00
+    for i in range(n_rows):
+        count = 0
+        for j in range(n_cols):
+            if predict[i][j] == real[i][j]:
+                count += 1
+        print(round(count / n_cols, 2))
+        accuracy += round(count / n_cols, 2)
+    return round(accuracy / n_rows, 2)
+
+
 # 建立神经网络
-def nn_model(X, Y, n_h, n_input, n_output, num_iterations=10000, print_cost=False):
+def nn_model(X, Y, n_h, n_input, n_output, num_iterations=20000, print_cost=False):
     np.random.seed(3)
 
     n_x = n_input  # 输入层节点数
@@ -158,7 +175,7 @@ def nn_model(X, Y, n_h, n_input, n_output, num_iterations=10000, print_cost=Fals
 
     # 1.初始化参数
     parameters = initialize_parameters(n_x, n_h, n_y)
-
+    learning_rate = 0.2
     # 梯度下降循环
     for i in range(0, num_iterations):
         # 2.前向传播
@@ -168,7 +185,12 @@ def nn_model(X, Y, n_h, n_input, n_output, num_iterations=10000, print_cost=Fals
         # 4.反向传播
         grads = backward_propagation(parameters, cache, X, Y)
         # 5.更新参数
-        parameters = update_parameters(parameters, grads)
+        parameters = update_parameters(parameters, grads, learning_rate)
+
+        # if i == 100000:
+        #     learning_rate = 0.02
+        # if i == 150000:
+        #     learning_rate = 0.005
 
         # 每1000次迭代，输出一次代价函数
         if print_cost and i % 1000 == 0:
@@ -253,11 +275,11 @@ def result_visualization(x_test, y_test, result):
 
 if __name__ == "__main__":
     # 读取数据
-    data_set = pd.read_csv("iris_training.csv", header=None)
+    data_set = pd.read_csv("gift_training.csv", header=None)
 
     # 第1种取数据方法：
-    X = data_set.iloc[:, 0:4].values.T  # 前四列是特征，T表示转置
-    Y = data_set.iloc[:, 4:].values.T  # 后三列是标签
+    X = data_set.iloc[:, 0:13].values.T  # 前十三列是特征，T表示转置
+    Y = data_set.iloc[:, 13:].values.T  # 后十六列是标签
 
     # 第2种取数据方法：
     # X = data_set.ix[:, 0:3].values.T
@@ -276,7 +298,7 @@ if __name__ == "__main__":
     start_time = datetime.datetime.now()
     # 输入4个节点，隐层10个节点，输出3个节点，迭代10000次
     parameters = nn_model(
-        X, Y, n_h=10, n_input=4, n_output=3, num_iterations=10000, print_cost=True
+        X, Y, n_h=22, n_input=13, n_output=16, num_iterations=100000, print_cost=True
     )
     end_time = datetime.datetime.now()
     print(
@@ -288,12 +310,12 @@ if __name__ == "__main__":
     )
 
     # 对模型进行测试
-    data_test = pd.read_csv("iris_test.csv", header=None)
-    x_test = data_test.iloc[:, 0:4].values.T
-    y_test = data_test.iloc[:, 4:].values.T
+    data_test = pd.read_csv("gift_test.csv", header=None)
+    x_test = data_test.iloc[:, 0:13].values.T
+    y_test = data_test.iloc[:, 13:].values.T
     y_test = y_test.astype("uint8")
 
     result = predict(parameters, x_test, y_test)
 
     # 分类结果可视化
-    result_visualization(x_test, y_test, result)
+    # result_visualization(x_test, y_test, result)
