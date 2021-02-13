@@ -80,7 +80,7 @@ def backward_propagation(parameters, cache, X, Y):
 
 
 # 5.更新参数
-def update_parameters(parameters, grads, learning_rate=0.04):
+def update_parameters(parameters, grads, learning_rate=0.1):
     w1 = parameters["w1"]
     b1 = parameters["b1"]
     w2 = parameters["w2"]
@@ -120,6 +120,7 @@ def predict(parameters, x_test, y_test):
 
     # 预测值结果存储
     output = np.empty(shape=(n_rows, n_cols), dtype=int)
+    print(a2)
 
     for i in range(n_rows):
         for j in range(n_cols):
@@ -133,21 +134,8 @@ def predict(parameters, x_test, y_test):
     print("真实结果：")
     print(y_test.T)
 
-    # count = 0
-    # for k in range(0, n_cols):
-    #     if (
-    #         output[0][k] == y_test[0][k]
-    #         and output[1][k] == y_test[1][k]
-    #         and output[2][k] == y_test[2][k]
-    #     ):
-    #         count = count + 1
-    #     else:
-    #         print(k)
-
-    # acc = count / int(y_test.shape[1]) * 100
-    # print("准确率：%.2f%%" % acc)
     print("准确率：", accuracy_calculate(output.T, y_test.T))
-    return output
+    return output.T
 
 
 def accuracy_calculate(predict, real):
@@ -166,7 +154,7 @@ def accuracy_calculate(predict, real):
     return round(accuracy / n_rows, 2)
 
 
-# 建立神经网络
+# 建立神经网络并进行训练
 def nn_model(X, Y, n_h, n_input, n_output, num_iterations=20000, print_cost=False):
     np.random.seed(3)
 
@@ -175,7 +163,7 @@ def nn_model(X, Y, n_h, n_input, n_output, num_iterations=20000, print_cost=Fals
 
     # 1.初始化参数
     parameters = initialize_parameters(n_x, n_h, n_y)
-    learning_rate = 0.2
+    learning_rate = 0.1
     # 梯度下降循环
     for i in range(0, num_iterations):
         # 2.前向传播
@@ -187,90 +175,13 @@ def nn_model(X, Y, n_h, n_input, n_output, num_iterations=20000, print_cost=Fals
         # 5.更新参数
         parameters = update_parameters(parameters, grads, learning_rate)
 
-        # if i == 100000:
-        #     learning_rate = 0.02
-        # if i == 150000:
-        #     learning_rate = 0.005
-
-        # 每1000次迭代，输出一次代价函数
-        if print_cost and i % 1000 == 0:
-            print("迭代第%i次，代价函数为：%f" % (i, cost))
+        # 每10000次迭代，输出一次代价函数
+        if print_cost and i % 10000 == 0:
+            print("迭代第%i次，代价函数为：%f" % (i, cost), "学习率：" + str(learning_rate))
+            # 学习率梯度下降
+            learning_rate = 0.9 * learning_rate
 
     return parameters
-
-
-# 结果可视化
-# 特征有4个维度，类别有1个维度，一共5个维度，故采用了RadViz图
-def result_visualization(x_test, y_test, result):
-    cols = y_test.shape[1]
-    y = []
-    pre = []
-
-    # 反转换类别的独热编码
-    for i in range(cols):
-        if y_test[0][i] == 0 and y_test[1][i] == 0 and y_test[2][i] == 1:
-            y.append("setosa")
-        elif y_test[0][i] == 0 and y_test[1][i] == 1 and y_test[2][i] == 0:
-            y.append("versicolor")
-        elif y_test[0][i] == 1 and y_test[1][i] == 0 and y_test[2][i] == 0:
-            y.append("virginica")
-
-    for j in range(cols):
-        if result[0][j] == 0 and result[1][j] == 0 and result[2][j] == 1:
-            pre.append("setosa")
-        elif result[0][j] == 0 and result[1][j] == 1 and result[2][j] == 0:
-            pre.append("versicolor")
-        elif result[0][j] == 1 and result[1][j] == 0 and result[2][j] == 0:
-            pre.append("virginica")
-        else:
-            pre.append("unknown")
-
-    # 将特征和类别矩阵拼接起来
-    real = np.column_stack((x_test.T, y))
-    prediction = np.column_stack((x_test.T, pre))
-
-    # 转换成DataFrame类型，并添加columns
-    df_real = pd.DataFrame(
-        real,
-        index=None,
-        columns=[
-            "Sepal Length",
-            "Sepal Width",
-            "Petal Length",
-            "Petal Width",
-            "Species",
-        ],
-    )
-    df_prediction = pd.DataFrame(
-        prediction,
-        index=None,
-        columns=[
-            "Sepal Length",
-            "Sepal Width",
-            "Petal Length",
-            "Petal Width",
-            "Species",
-        ],
-    )
-
-    # 将特征列转换为float类型，否则radviz会报错
-    df_real[["Sepal Length", "Sepal Width", "Petal Length", "Petal Width"]] = df_real[
-        ["Sepal Length", "Sepal Width", "Petal Length", "Petal Width"]
-    ].astype(float)
-    df_prediction[
-        ["Sepal Length", "Sepal Width", "Petal Length", "Petal Width"]
-    ] = df_prediction[
-        ["Sepal Length", "Sepal Width", "Petal Length", "Petal Width"]
-    ].astype(
-        float
-    )
-
-    # 绘图
-    plt.figure("真实分类")
-    radviz(df_real, "Species", color=["blue", "green", "red", "yellow"])
-    plt.figure("预测分类")
-    radviz(df_prediction, "Species", color=["blue", "green", "red", "yellow"])
-    plt.show()
 
 
 if __name__ == "__main__":
@@ -281,24 +192,13 @@ if __name__ == "__main__":
     X = data_set.iloc[:, 0:13].values.T  # 前十三列是特征，T表示转置
     Y = data_set.iloc[:, 13:].values.T  # 后十六列是标签
 
-    # 第2种取数据方法：
-    # X = data_set.ix[:, 0:3].values.T
-    # Y = data_set.ix[:, 4:6].values.T
-
-    # 第3种取数据方法：
-    # X = data_set.loc[:, 0:3].values.T
-    # Y = data_set.loc[:, 4:6].values.T
-
-    # 第4种取数据方法：
-    # X = data_set[data_set.columns[0:4]].values.T
-    # Y = data_set[data_set.columns[4:7]].values.T
     Y = Y.astype("uint8")
 
     # 开始训练
     start_time = datetime.datetime.now()
-    # 输入4个节点，隐层10个节点，输出3个节点，迭代10000次
+    # 输入4个节点，隐层10个节点，输出3个节点，迭代200000次
     parameters = nn_model(
-        X, Y, n_h=22, n_input=13, n_output=16, num_iterations=100000, print_cost=True
+        X, Y, n_h=20, n_input=13, n_output=16, num_iterations=200000, print_cost=True
     )
     end_time = datetime.datetime.now()
     print(
@@ -316,6 +216,3 @@ if __name__ == "__main__":
     y_test = y_test.astype("uint8")
 
     result = predict(parameters, x_test, y_test)
-
-    # 分类结果可视化
-    # result_visualization(x_test, y_test, result)
