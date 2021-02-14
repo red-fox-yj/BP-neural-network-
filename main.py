@@ -3,6 +3,7 @@ import numpy as np
 import datetime
 import matplotlib.pyplot as plt
 from pandas.plotting import radviz
+from utils import code_to_word
 
 """
     构建一个具有1个隐藏层的神经网络，隐层的大小为10
@@ -130,9 +131,9 @@ def predict(parameters, x_test, y_test):
                 output[i][j] = 0
 
     print("预测结果：")
-    print(output.T)
+    print(code_to_word(output.T))
     print("真实结果：")
-    print(y_test.T)
+    print(code_to_word(y_test.T))
 
     print("准确率：", accuracy_calculate(output.T, y_test.T))
     return output.T
