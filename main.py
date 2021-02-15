@@ -187,7 +187,7 @@ def nn_model(X, Y, n_h, n_input, n_output, num_iterations=20000, print_cost=Fals
 
 if __name__ == "__main__":
     # 读取数据
-    data_set = pd.read_csv("gift_training.csv", header=None)
+    data_set = pd.read_csv("samples/gift_training.csv", header=None)
 
     # 第1种取数据方法：
     X = data_set.iloc[:, 0:13].values.T  # 前十三列是特征，T表示转置
@@ -211,7 +211,7 @@ if __name__ == "__main__":
     )
 
     # 对模型进行测试
-    data_test = pd.read_csv("gift_test.csv", header=None)
+    data_test = pd.read_csv("samples/gift_test.csv", header=None)
     x_test = data_test.iloc[:, 0:13].values.T
     y_test = data_test.iloc[:, 13:].values.T
     y_test = y_test.astype("uint8")
